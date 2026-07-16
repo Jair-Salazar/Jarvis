@@ -4,24 +4,25 @@ from dotenv import load_dotenv
 from core.llm.groq_llm_client import GroqLLMClient
 from core.llm.google_llm_client import GoogleLLMClient
 from core.llm.fallback_llm_client import FallbackLLMClient
+from core.memory.repositories.semantic_memory_repository import SemanticMemoryRepository
+from core.conversation.conversation_engine import ConversationEngine
 
 load_dotenv()
 
-groq_keys = [os.getenv("GROQ_API_KEY_1"), os.getenv("GROQ_API_KEY_2")]
-groq_keys = [k for k in groq_keys if k]
+groq_keys = [k for k in [os.getenv("GROQ_API_KEY_1"), os.getenv("GROQ_API_KEY_2")] if k]
+google_keys = [k for k in [os.getenv("GOOGLE_API_KEY_1"), os.getenv("GOOGLE_API_KEY_2")] if k]
 
-google_keys = [os.getenv("GOOGLE_API_KEY_1"), os.getenv("GOOGLE_API_KEY_2")]
-google_keys = [k for k in google_keys if k]
+llm = FallbackLLMClient(clients=[
+    GroqLLMClient(api_keys=groq_keys),
+    GoogleLLMClient(api_keys=google_keys),
+])
+memoria = SemanticMemoryRepository()
+jarvis = ConversationEngine(llm=llm, memory=memoria)
 
-groq_client = GroqLLMClient(api_keys=groq_keys)
-google_client = GoogleLLMClient(api_keys=google_keys)
+print("--- Mensaje 1: le damos un dato para guardar ---")
+r1 = jarvis.responder("Recuerda que mi lenguaje de programación favorito es Python.")
+print("JARVIS:", r1)
 
-jarvis_llm = FallbackLLMClient(clients=[groq_client, google_client])
-
-respuesta = jarvis_llm.generate(
-    messages=[
-        {"role": "user", "content": "Responde solo con: JARVIS está en línea, sistema de respaldo listo."}
-    ]
-)
-
-print("Respuesta del modelo:", respuesta.content)
+print("\n--- Mensaje 2: le preguntamos algo que requiere buscar en memoria ---")
+r2 = jarvis.responder("¿Cuál es mi lenguaje de programación favorito?")
+print("JARVIS:", r2)
