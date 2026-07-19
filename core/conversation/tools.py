@@ -3,6 +3,7 @@ import json
 from core.memory.domain.models import Memory
 from core.memory.domain.enums import MemoryType
 from core.memory.repositories.memory_repository import MemoryRepository
+from core.tools.open_app_tool import OpenAppTool
 
 # Definición en formato estándar de tool calling (compatible con Groq/OpenAI)
 TOOL_SCHEMAS = [
@@ -73,5 +74,28 @@ def ejecutar_herramienta(nombre: str, argumentos_json: str, repo: MemoryReposito
         )
         repo.save(memoria)
         return "Guardado en memoria correctamente."
-
+    
+    if nombre == "abrir_programa":
+        return _abrir_programa_tool.ejecutar(nombre_app=argumentos["nombre_app"])
+    
     return f"Herramienta desconocida: {nombre}"
+
+_abrir_programa_tool = OpenAppTool()
+
+TOOL_SCHEMAS.append({
+    "type": "function",
+    "function": {
+        "name": "abrir_programa",
+        "description": "Abre una aplicación en la computadora del usuario, como el navegador, bloc de notas, calculadora, etc.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "nombre_app": {
+                    "type": "string",
+                    "description": "Nombre de la aplicación a abrir, ej: 'chrome', 'calculadora', 'notepad'."
+                }
+            },
+            "required": ["nombre_app"],
+        },
+    },
+})
