@@ -4,6 +4,8 @@ from core.memory.domain.models import Memory
 from core.memory.domain.enums import MemoryType
 from core.memory.repositories.memory_repository import MemoryRepository
 from core.tools.open_app_tool import OpenAppTool
+from core.tools.close_app_tool import CloseAppTool
+
 
 # Definición en formato estándar de tool calling (compatible con Groq/OpenAI)
 TOOL_SCHEMAS = [
@@ -78,9 +80,16 @@ def ejecutar_herramienta(nombre: str, argumentos_json: str, repo: MemoryReposito
     if nombre == "abrir_programa":
         return _abrir_programa_tool.ejecutar(nombre_app=argumentos["nombre_app"])
     
+    if nombre == "cerrar_programa":
+        return _cerrar_programa_tool.ejecutar(
+            nombre_app=argumentos["nombre_app"],
+            confirmado=argumentos.get("confirmado", False),
+        )    
     return f"Herramienta desconocida: {nombre}"
 
 _abrir_programa_tool = OpenAppTool()
+_cerrar_programa_tool = CloseAppTool()
+
 
 TOOL_SCHEMAS.append({
     "type": "function",
@@ -93,6 +102,28 @@ TOOL_SCHEMAS.append({
                 "nombre_app": {
                     "type": "string",
                     "description": "Nombre de la aplicación a abrir, ej: 'chrome', 'calculadora', 'notepad'."
+                }
+            },
+            "required": ["nombre_app"],
+        },
+    },
+})
+
+TOOL_SCHEMAS.append({
+    "type": "function",
+    "function": {
+        "name": "cerrar_programa",
+        "description": "Cierra un programa en ejecución. SIEMPRE pregunta al usuario antes de llamar con confirmado=true.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "nombre_app": {
+                    "type": "string",
+                    "description": "Nombre del programa a cerrar."
+                },
+                "confirmado": {
+                    "type": "boolean",
+                    "description": "true solo si el usuario ya confirmó explícitamente que quiere cerrarlo. false o ausente en el primer intento."
                 }
             },
             "required": ["nombre_app"],

@@ -14,6 +14,10 @@ SYSTEM_PROMPT = (
     "nunca digas que no tienes datos si la herramienta ya te los dio. "
     "No vuelvas a llamar la misma herramienta con argumentos iguales o casi iguales. "
     "Responde en texto plano tan pronto tengas suficiente información."
+    "Para acciones de riesgo alto como cerrar_programa: si la herramienta responde con "
+    "'CONFIRMACION_REQUERIDA', pregúntale al usuario en tus propias palabras si de verdad "
+    "quiere hacerlo, y espera su respuesta antes de volver a llamar la herramienta con "
+    "confirmado=true. Nunca asumas confirmación que el usuario no dio explícitamente."
 )
 
 class ConversationEngine:
